@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Pişirio 🍳</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#ff6b35" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Pişirio" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0e0c;
+      --card: #1a1814;
+      --border: #2a2620;
+      --accent: #ff6b35;
+      --gold: #f5c842;
+      --green: #4caf7d;
+      --text: #f0ebe3;
+      --muted: #8a8070;
+      --surface: #242018;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; max-width: 390px; margin: 0 auto; min-height: 100vh; overflow-x: hidden; }
+    h1, h2, h3 { font-family: 'Playfair Display', serif; }
+
+    /* NAV */
+    .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 390px; background: var(--card); border-top: 1px solid var(--border); display: flex; padding: 10px 0 24px; z-index: 100; }
+    .nav-tab { flex: 1; text-align: center; cursor: pointer; padding: 4px; }
+    .nav-tab .nav-icon { font-size: 22px; }
+    .nav-tab .nav-label { font-size: 10px; color: var(--muted); font-weight: 500; margin-top: 2px; }
+    .nav-tab.active .nav-label { color: var(--accent); font-weight: 700; }
+
+    /* SCREENS */
+    .screen { display: none; padding-bottom: 100px; }
+    .screen.active { display: block; }
+
+    /* HEADER */
+    .home-header { padding: 28px 20px 16px; background: linear-gradient(180deg, #1a1814 0%, var(--bg) 100%); }
+    .greeting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .greeting-sub { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+    .greeting-name { font-size: 26px; font-weight: 800; }
+    .stats-row { display: flex; gap: 10px; }
+    .stat-badge { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; text-align: center; }
+    .stat-icon { font-size: 14px; }
+    .stat-value { font-weight: 800; font-size: 16px; line-height: 1; }
+    .stat-label { color: var(--muted); font-size: 10px; }
+
+    /* PROGRESS */
+    .level-card { background: var(--card); border-radius: 16px; padding: 14px 18px; border: 1px solid var(--border); }
+    .level-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .level-name { font-weight: 700; font-size: 14px; }
+    .level-next { color: var(--muted); font-size: 12px; }
+    .progress-bar { background: var(--surface); border-radius: 99px; height: 8px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); border-radius: 99px; transition: width 0.8s ease; }
+
+    /* SECTIONS */
+    .section { padding: 0 20px 20px; }
+    .section-title { font-size: 11px; font-weight: 800; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+
+    /* RECIPE CARD */
+    .recipe-card { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--border); cursor: pointer; position: relative; overflow: hidden; }
+    .recipe-card-bg { position: absolute; right: -10px; top: -10px; font-size: 80px; opacity: 0.12; }
+    .recipe-label { font-size: 11px; color: var(--accent); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+    .recipe-title { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    .tags { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tag { border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; background: var(--surface); color: var(--muted); }
+    .tag.gold { background: #f5c84220; color: var(--gold); }
+    .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 14px; padding: 12px 20px; font-weight: 700; font-size: 15px; cursor: pointer; width: 100%; font-family: 'DM Sans', sans-serif; }
+    .btn-primary:hover { opacity: 0.9; }
+
+    /* LESSON ITEMS */
+    .lesson-item { background: var(--card); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; border: 1px solid var(--border); display: flex; align-items: center; gap: 14px; cursor: pointer; }
+    .lesson-item.locked { opacity: 0.45; cursor: default; }
+    .lesson-item.done { border-color: #4caf7d30; }
+    .lesson-emoji { font-size: 28px; }
+    .lesson-info { flex: 1; }
+    .lesson-name { font-weight: 700; font-size: 15px; }
+    .lesson-dur { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .lesson-status { font-size: 18px; }
+
+    /* RECIPE SCREEN */
+    .recipe-screen-header { padding: 20px 20px 16px; display: flex; align-items: center; gap: 12px; }
+    .btn-back { background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 8px 14px; cursor: pointer; font-size: 16px; font-family: 'DM Sans', sans-serif; }
+    .recipe-screen-title { flex: 1; font-weight: 700; }
+    .recipe-screen-sub { color: var(--muted); font-size: 12px; }
+    .step-card { background: var(--card); border-radius: 20px; padding: 24px; border: 1px solid var(--border); margin: 0 20px 16px; }
+    .step-num { background: var(--accent); color: #fff; border-radius: 99px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; flex-shrink: 0; }
+    .step-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .step-label { font-size: 11px; color: var(--accent); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+    .step-action { font-size: 20px; font-weight: 800; line-height: 1.4; margin-bottom: 16px; }
+    .tip-box { background: var(--surface); border-radius: 12px; padding: 12px 16px; border-left: 3px solid var(--gold); }
+    .tip-label { font-size: 11px; color: var(--gold); font-weight: 700; margin-bottom: 4px; }
+    .tip-text { font-size: 14px; line-height: 1.5; }
+    .concept-tag { margin-top: 12px; background: #ff6b3520; border-radius: 10px; padding: 6px 12px; display: inline-block; font-size: 12px; color: var(--accent); font-weight: 700; }
+    .ai-btn { background: transparent; border: 1px dashed #4caf7d60; color: var(--green); border-radius: 14px; padding: 12px 20px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; font-family: 'DM Sans', sans-serif; margin: 0 20px; width: calc(100% - 40px); }
+    .ai-tip-box { background: #1a2a1a; border-radius: 14px; padding: 14px 16px; border: 1px solid #4caf7d30; margin: 0 20px; }
+    .ai-tip-label { font-size: 11px; color: var(--green); font-weight: 700; margin-bottom: 6px; }
+    .ai-tip-text { font-size: 14px; line-height: 1.5; }
+    .next-btn-wrap { padding: 16px 20px 0; }
+
+    /* COMPLETE */
+    .complete-screen { padding: 80px 24px 24px; text-align: center; }
+    .complete-emoji { font-size: 72px; margin-bottom: 16px; }
+    .complete-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    .complete-sub { color: var(--muted); margin-bottom: 24px; }
+    .xp-card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 24px; border: 1px solid #f5c84230; }
+    .xp-amount { font-size: 28px; font-weight: 800; color: var(--gold); }
+
+    /* PATH */
+    .path-header { padding: 24px 20px 0; }
+    .path-title { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+    .path-sub { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+    .level-group { padding: 0 20px; margin-bottom: 24px; }
+    .level-group-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .level-group-icon { font-size: 24px; }
+    .level-group-name { font-weight: 800; font-size: 16px; }
+    .level-group-req { color: var(--accent); font-size: 12px; }
+    .level-open { color: var(--green); font-weight: 700; font-size: 12px; margin-left: auto; }
+
+    /* QUIZ */
+    .quiz-wrap { padding: 20px 20px 100px; }
+    .quiz-top { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .quiz-progress { flex: 1; background: var(--surface); border-radius: 99px; height: 6px; overflow: hidden; }
+    .quiz-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.4s; }
+    .quiz-count { color: var(--muted); font-size: 13px; }
+    .question-card { background: var(--card); border-radius: 20px; padding: 24px; border: 1px solid var(--border); margin-bottom: 20px; }
+    .question-label { font-size: 11px; color: var(--accent); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+    .question-text { font-size: 18px; font-weight: 700; line-height: 1.5; }
+    .option { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; margin-bottom: 10px; cursor: pointer; font-weight: 600; font-size: 15px; transition: all 0.2s; color: var(--text); }
+    .option.correct { background: #1a2a1a; border-color: var(--green); color: var(--green); }
+    .option.wrong { background: #2a1a1a; border-color: #e05555; color: #e05555; }
+    .option.faded { color: var(--muted); }
+    .explain-box { background: #1a2a1a; border-radius: 12px; padding: 12px 16px; border: 1px solid #4caf7d30; margin-top: 8px; font-size: 13px; color: var(--green); line-height: 1.5; }
+    .finish-screen { padding: 60px 24px 24px; text-align: center; }
+    .cat-btn { background: var(--card); border: 1px solid var(--border); color: var(--muted); border-radius: 99px; padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: "DM Sans", sans-serif; }
+    .cat-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .recipe-list-item { background: var(--card); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; border: 1px solid var(--border); display: flex; align-items: center; gap: 14px; cursor: pointer; }
+    .recipe-list-item:hover { border-color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<!-- HOME SCREEN -->
+<div class="screen active" id="screen-home">
+  <div class="home-header">
+    <div class="greeting-row">
+      <div>
+        <div class="greeting-sub">Hoş geldin</div>
+        <h1 class="greeting-name" id="greeting-name">Aşçı 👋</h1>
+      </div>
+      <div class="stats-row">
+        <div class="stat-badge">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-value" id="streak-val" style="color:#ff6b35">3</div>
+          <div class="stat-label">gün</div>
+        </div>
+        <div class="stat-badge">
+          <div class="stat-icon">⭐</div>
+          <div class="stat-value" id="xp-val" style="color:#f5c842">80</div>
+          <div class="stat-label">XP</div>
+        </div>
+      </div>
+    </div>
+    <div class="level-card">
+      <div class="level-row">
+        <span class="level-name" id="level-name">🔪 Çırak</span>
+        <span class="level-next" id="level-next">🍳 Aşçı için 70 XP</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:53%"></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Günün Tarifi</div>
+    <div class="recipe-card" onclick="startRecipe(0)">
+      <div class="recipe-card-bg">🍳</div>
+      <div class="recipe-label">⚡ Bugün Pişir</div>
+      <h2 class="recipe-title">🍳 Menemen</h2>
+      <div class="tags">
+        <span class="tag">⏱ 15 dk</span>
+        <span class="tag">💪 Kolay</span>
+        <span class="tag gold">+50 XP</span>
+      </div>
+      <button class="btn-primary">Başla →</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Öğrenme Yolun</div>
+    <div class="lesson-item done" onclick="goTab('path')">
+      <div class="lesson-emoji">🧂</div>
+      <div class="lesson-info">
+        <div class="lesson-name">Tuz & Lezzet</div>
+        <div class="lesson-dur">⏱ 8 dk</div>
+      </div>
+      <div class="lesson-status" style="color:#4caf7d">✓</div>
+    </div>
+    <div class="lesson-item" onclick="goTab('path')">
+      <div class="lesson-emoji">🔪</div>
+      <div class="lesson-info">
+        <div class="lesson-name">Bıçak Tutma</div>
+        <div class="lesson-dur">⏱ 10 dk</div>
+      </div>
+      <div class="lesson-status" style="color:#ff6b35">▶</div>
+    </div>
+    <div style="text-align:center;color:var(--accent);font-weight:700;font-size:14px;padding:12px;cursor:pointer" onclick="goTab('path')">Tüm yolu gör →</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Tarifler</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;">
+      <button class="cat-btn active" onclick="filterCat(this,'Tümü')">Tümü</button>
+      <button class="cat-btn" onclick="filterCat(this,'Kahvaltı')">☀️ Kahvaltı</button>
+      <button class="cat-btn" onclick="filterCat(this,'Öğle')">🌤 Öğle</button>
+      <button class="cat-btn" onclick="filterCat(this,'Akşam')">🌙 Akşam</button>
+      <button class="cat-btn" onclick="filterCat(this,'Ara')">🍿 Ara</button>
+    </div>
+    <div id="recipe-list"></div>
+  </div>
+</div>
+
+<!-- RECIPE SCREEN -->
+<div class="screen" id="screen-recipe">
+  <div class="recipe-screen-header">
+    <button class="btn-back" onclick="goHome()">←</button>
+    <div style="flex:1">
+      <div class="recipe-screen-title" id="recipe-screen-title">🍳 Menemen</div>
+      <div class="recipe-screen-sub" id="recipe-screen-sub">Adım 1 / 7</div>
+    </div>
+    <span class="tag gold" id="recipe-xp-tag">+50 XP</span>
+  </div>
+  <div style="padding:0 20px 20px">
+    <div class="progress-bar"><div class="progress-fill" id="recipe-progress" style="width:0%"></div></div>
+  </div>
+  <div class="step-card">
+    <div class="step-header">
+      <div class="step-num" id="step-num">1</div>
+      <div class="step-label">Şimdi yap</div>
+    </div>
+    <div class="step-action" id="step-action">Zeytinyağını tavaya koy</div>
+    <div class="tip-box">
+      <div class="tip-label">💡 İPUCU</div>
+      <div class="tip-text" id="step-tip">Orta ateş — yağ çok ısınmasın</div>
+    </div>
+    <div id="concept-tag-wrap"></div>
+  </div>
+  <div id="ai-area" style="margin-bottom:16px">
+    <button class="ai-btn" id="ai-btn" onclick="getAiTip()">🤖 AI Şef'e sor</button>
+  </div>
+  <div class="next-btn-wrap">
+    <button class="btn-primary" id="next-btn" onclick="nextStep()">Sonraki Adım →</button>
+  </div>
+</div>
+
+<!-- COMPLETE SCREEN -->
+<div class="screen" id="screen-complete">
+  <div class="complete-screen">
+    <div class="complete-emoji">🎉</div>
+    <h2 class="complete-title">Harika!</h2>
+    <div class="complete-sub" id="complete-sub">Menemen pişirdin!</div>
+    <div class="xp-card">
+      <div style="font-size:36px;margin-bottom:8px">⭐</div>
+      <div class="xp-amount" id="complete-xp">+50 XP</div>
+      <div style="color:var(--muted);font-size:14px">kazandın!</div>
+    </div>
+    <button class="btn-primary" onclick="finishRecipe()">Ana Sayfaya Dön</button>
+  </div>
+</div>
+
+<!-- PATH SCREEN -->
+<div class="screen" id="screen-path">
+  <div class="path-header">
+    <h2 class="path-title">Öğrenme Yolu</h2>
+    <div class="path-sub">Adım adım aşçı ol</div>
+  </div>
+  <div class="level-group">
+    <div class="level-group-header">
+      <span class="level-group-icon">🔪</span>
+      <div><div class="level-group-name">Çırak</div></div>
+      <span class="level-open">✓ Açık</span>
+    </div>
+    <div class="lesson-item done"><div class="lesson-emoji">🧂</div><div class="lesson-info"><div class="lesson-name">Tuz & Lezzet</div><div class="lesson-dur">⏱ 8 dk</div></div><div style="color:#4caf7d">✓</div></div>
+    <div class="lesson-item"><div class="lesson-emoji">🔪</div><div class="lesson-info"><div class="lesson-name">Bıçak Tutma</div><div class="lesson-dur">⏱ 10 dk</div></div><div style="color:#ff6b35">▶</div></div>
+    <div class="lesson-item locked"><div class="lesson-emoji">🧅</div><div class="lesson-info"><div class="lesson-name">Soğan Doğrama</div><div class="lesson-dur">⏱ 12 dk</div></div><div>🔒</div></div>
+  </div>
+  <div class="level-group" style="opacity:0.5">
+    <div class="level-group-header">
+      <span class="level-group-icon">🍳</span>
+      <div><div class="level-group-name">Aşçı</div><div class="level-group-req">150 XP gerekli</div></div>
+    </div>
+    <div class="lesson-item locked"><div class="lesson-emoji">🥘</div><div class="lesson-info"><div class="lesson-name">Kavurma Tekniği</div><div class="lesson-dur">⏱ 15 dk</div></div><div>🔒</div></div>
+    <div class="lesson-item locked"><div class="lesson-emoji">🌶️</div><div class="lesson-info"><div class="lesson-name">Baharat Dengesi</div><div class="lesson-dur">⏱ 10 dk</div></div><div>🔒</div></div>
+    <div class="lesson-item locked"><div class="lesson-emoji">🫙</div><div class="lesson-info"><div class="lesson-name">Sos Temelleri</div><div class="lesson-dur">⏱ 20 dk</div></div><div>🔒</div></div>
+  </div>
+  <div class="level-group" style="opacity:0.4">
+    <div class="level-group-header">
+      <span class="level-group-icon">👨‍🍳</span>
+      <div><div class="level-group-name">Usta</div><div class="level-group-req">400 XP gerekli</div></div>
+    </div>
+    <div class="lesson-item locked"><div class="lesson-emoji">🥩</div><div class="lesson-info"><div class="lesson-name">Et Pişirme</div><div class="lesson-dur">⏱ 25 dk</div></div><div>🔒</div></div>
+    <div class="lesson-item locked"><div class="lesson-emoji">🫓</div><div class="lesson-info"><div class="lesson-name">Hamur İşi</div><div class="lesson-dur">⏱ 30 dk</div></div><div>🔒</div></div>
+  </div>
+</div>
+
+<!-- QUIZ SCREEN -->
+<div class="screen" id="screen-quiz">
+  <div class="quiz-wrap">
+    <div class="quiz-top">
+      <button class="btn-back" onclick="goHome()">←</button>
+      <div class="quiz-progress"><div class="quiz-fill" id="quiz-fill" style="width:0%"></div></div>
+      <div class="quiz-count" id="quiz-count">1/3</div>
+    </div>
+    <div class="question-card">
+      <div class="question-label">Soru</div>
+      <div class="question-text" id="question-text">Menemen pişirirken yumurtayı ne zaman çıkarmalısın?</div>
+    </div>
+    <div id="options-wrap"></div>
+    <div id="explain-wrap"></div>
+  </div>
+</div>
+
+<!-- FINISH QUIZ -->
+<div class="screen" id="screen-finish">
+  <div class="finish-screen">
+    <div style="font-size:60px;margin-bottom:16px" id="finish-emoji">🏆</div>
+    <h2 style="font-size:26px;font-weight:800;margin-bottom:8px" id="finish-title">3/3 Doğru</h2>
+    <div style="color:var(--muted);margin-bottom:24px" id="finish-sub">Mükemmel! Usta gibi!</div>
+    <div class="xp-card">
+      <div style="font-size:36px;margin-bottom:8px">⭐</div>
+      <div class="xp-amount" id="finish-xp">+60 XP</div>
+      <div style="color:var(--muted);font-size:14px">kazandın!</div>
+    </div>
+    <button class="btn-primary" onclick="finishQuiz()">Devam Et</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-tab active" id="tab-home" onclick="goTab('home')">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label">Ana Sayfa</div>
+  </div>
+  <div class="nav-tab" id="tab-path" onclick="goTab('path')">
+    <div class="nav-icon">🗺️</div>
+    <div class="nav-label">Yol</div>
+  </div>
+  <div class="nav-tab" id="tab-quiz" onclick="goTab('quiz')">
+    <div class="nav-icon">🧠</div>
+    <div class="nav-label">Quiz</div>
+  </div>
+</div>
+
+<script>
+const RECIPES = [
+  {id:"r1",title:"Menemen",emoji:"🍳",category:"Kahvaltı",difficulty:"Kolay",time:"15 dk",xp:50,concept:"Kavurma",ingredients:["2 yumurta","1 domates","1 yeşil biber","1/2 soğan","zeytinyağı","tuz","pul biber"],steps:[{action:"Zeytinyağını tavaya koy, orta ateşe al",tip:"Yağ çok ısınmasın — parmağını yaklaştırınca hafif sıcaklık hissetmelisin",concept:null},{action:"Soğanı ince ince doğra, yağda kavur",tip:"Saydam görünene kadar ~4-5 dk. Yanmasın, sadece yumuşasın",concept:"soğan kavurma"},{action:"Biberi ince doğra, soğana ekle, 2 dk kavur",tip:"Biber suyunu çekince hazır — hafif parlak görünür",concept:null},{action:"Domatesi küp küp doğra, ekle",tip:"Taze domates varsa suyunu sıkmadan ekle, suyu lezzet demek",concept:"domates suyu"},{action:"Tuz ve pul biber ekle, karıştır",tip:"Önce az tuz koy, piştikten sonra tadına bak",concept:"tuz dengesi"},{action:"Yumurtaları kır, karıştırma!",tip:"Menemenin sırrı — az karıştırırsan kremsi olur",concept:null},{action:"Kapağı kapat, 2-3 dk bekle",tip:"Yumurtanın üstü beyazlaşınca hazır",concept:null}]},
+  {id:"r2",title:"Sahanda Yumurta",emoji:"🍳",category:"Kahvaltı",difficulty:"Çok Kolay",time:"8 dk",xp:30,concept:"Isı Kontrolü",ingredients:["2 yumurta","1 tatlı kaşığı tereyağı","tuz","karabiber"],steps:[{action:"Tavayı kısık ateşe koy, tereyağını ekle",tip:"Kısık ateş şart — yüksek ateşte yumurta tabanı yanar",concept:"ısı kontrolü"},{action:"Tereyağı eriyince yumurtaları kır",tip:"Yumurtayı önce küçük kaseye kır, sonra tavaya aktar",concept:null},{action:"Tuz ve karabiber serp",tip:"Sadece beyaza tuz serpebilirsin",concept:null},{action:"Kapaksız 3-4 dk pişir, dokunma",tip:"Beyaz tamamen pişince, sarı hâlâ akışkan — işte o an çıkar",concept:null}]},
+  {id:"r3",title:"Omlet",emoji:"🥚",category:"Kahvaltı",difficulty:"Kolay",time:"10 dk",xp:40,concept:"Çırpma & Katlama",ingredients:["3 yumurta","2 yemek kaşığı süt","tuz","tereyağı","isteğe bağlı: kaşar, domates"],steps:[{action:"Yumurtaları kaseye kır, süt ve tuz ekle",tip:"Süt omleti yumuşatır",concept:null},{action:"Çatal ile iyice çırp",tip:"Sarı ve beyaz tamamen karışana kadar — en az 30 sn",concept:"çırpma"},{action:"Tavaya tereyağı koy, eritec",tip:"Tereyağı köpürmeye başlayınca yumurtayı dök",concept:null},{action:"Yumurtayı dök, kenarlara spatula ile iterek pişir",tip:"Kenarlardaki pişmiş kısmı ortaya katla",concept:"katlama"},{action:"İç malzemeyi ortaya koy",tip:"Yumurta henüz biraz akışkanken doldur",concept:null},{action:"İkiye katla, 30 sn daha pişir",tip:"Üzeri altın rengi olunca hazır",concept:null}]},
+  {id:"r4",title:"Kaşarlı Tost",emoji:"🥪",category:"Kahvaltı",difficulty:"Çok Kolay",time:"7 dk",xp:25,concept:"Kızartma",ingredients:["2 dilim ekmek","2-3 dilim kaşar peyniri","tereyağı"],steps:[{action:"Ekmeğin dış yüzlerine tereyağı sür",tip:"Dışı tereyağlı olursa altın rengi ve çıtır olur",concept:"kızartma"},{action:"Tavayı orta ateşe al",tip:"Tost makinesi yoksa tava mükemmel çalışır",concept:null},{action:"Ekmeği tavaya koy, üstüne kaşarı diz",tip:"Kaşarı bol koy — eriyince azalır",concept:null},{action:"Diğer dilimi kapat, spatulayla bastır",tip:"Hafifçe bastırmak peynirin erimesini hızlandırır",concept:null},{action:"Alt yüzü altın rengi olunca çevir (2-3 dk)",tip:"Sabırlı ol — erken çevirme",concept:null},{action:"Diğer yüzü de 2 dk pişir, çıkar",tip:"Peynir akıyorsa hazır demektir",concept:null}]},
+  {id:"r5",title:"Mercimek Çorbası",emoji:"🍲",category:"Öğle",difficulty:"Kolay",time:"25 dk",xp:70,concept:"Çorba Temeli",ingredients:["1 su bardağı kırmızı mercimek","1 soğan","1 havuç","2 yemek kaşığı tereyağı","tuz","kimyon","pul biber"],steps:[{action:"Soğan ve havucu küp küp doğra",tip:"Eşit boyut önemli — eşit pişerler",concept:null},{action:"Tereyağını tencereye koy, soğanı kavur",tip:"Altın rengi alana kadar ~5 dk",concept:"kavurma"},{action:"Havucu ekle, 2 dk daha kavur",tip:"Havuç tatlılık katar çorbaya",concept:null},{action:"Mercimeği ekle, 3 bardak su dök",tip:"Kırmızı mercimeği yıkamak gerekmez",concept:null},{action:"Kaynatıp kısık ateşte 20 dk pişir",tip:"Mercimek ezilene kadar bekle",concept:null},{action:"Ocağı kapat, blenderdan geçir",tip:"Sıcakken dikkat! Blender kapağını bir bezle tut",concept:"blenderlama"},{action:"Ayrı tavada tereyağı eritip pul biber ekle, çorbanın üstüne dök",tip:"Bu adım çorbayı 10 kat güzel yapar, atlatma!",concept:"terbiye"}]},
+  {id:"r6",title:"Domates Çorbası",emoji:"🍅",category:"Öğle",difficulty:"Kolay",time:"20 dk",xp:60,concept:"Asit Dengesi",ingredients:["4 olgun domates","1 soğan","2 diş sarımsak","tereyağı","tuz","şeker","fesleğen"],steps:[{action:"Domatesleri soyup küp doğra",tip:"Üstüne çarpı çiz, kaynar suya 30 sn daldır — kabuk kendi gelir",concept:null},{action:"Soğan ve sarımsağı tereyağında kavur",tip:"Sarımsak yanmasın — soğan yumuşayınca ekle",concept:"kavurma"},{action:"Domatesleri ekle, tuz ve şeker koy",tip:"Şeker asitliği dengeler — sadece 1 tutam yeterli",concept:"asit dengesi"},{action:"Kısık ateşte 15 dk pişir",tip:"Domates suyu çekip koyulaşınca hazır",concept:null},{action:"Blenderdan geçir",tip:"Süzgeçten geçirince ipeksi olur",concept:null},{action:"Fesleğen ekle, servis et",tip:"Taze fesleğen pişirme — sadece üstüne koy",concept:null}]},
+  {id:"r7",title:"Tavuk Sote",emoji:"🍗",category:"Öğle",difficulty:"Orta",time:"25 dk",xp:80,concept:"Et Mühürleme",ingredients:["2 tavuk göğsü","1 biber","1 domates","1 soğan","zeytinyağı","tuz","karabiber","kekik"],steps:[{action:"Tavuğu küp küp doğra",tip:"Eşit boyut şart",concept:null},{action:"Tavayı yüksek ateşe al, yağ ekle",tip:"Yüksek ateş tavuğu mühürler, suyu içinde kalır",concept:"et mühürleme"},{action:"Tavuğu ekle, karıştırma — 2 dk bekle",tip:"Karıştırırsan su çıkar, kavurmaz",concept:null},{action:"Tavuğu çevir, diğer yüzü de 2 dk pişir",tip:"Altın rengi görünce çevir",concept:null},{action:"Soğan ve biberi ekle, karıştır",tip:"Ateşi kıs, sebzeler yumuşasın",concept:null},{action:"Domatesi ekle, tuz, karabiber, kekik ekle",tip:"Kekik tavukla çok iyi gider",concept:null},{action:"Kısık ateşte 10 dk pişir",tip:"Domates suyu çekilince hazır",concept:null}]},
+  {id:"r8",title:"Domates Soslu Makarna",emoji:"🍝",category:"Öğle",difficulty:"Kolay",time:"20 dk",xp:55,concept:"Makarna Pişirme",ingredients:["200g makarna","2 domates","3 diş sarımsak","zeytinyağı","tuz","şeker","fesleğen"],steps:[{action:"Büyük tencereye bol su koy, kaynat",tip:"Su az olursa makarna birbirine yapışır",concept:null},{action:"Su kaynayınca tuz at, makarnayı ekle",tip:"Su tuzlu olmalı — deniz gibi",concept:"makarna pişirme"},{action:"Pakette yazan süre kadar pişir",tip:"1-2 dk erken çıkar, al dente olsun",concept:"al dente"},{action:"Ayrı tavada sarımsağı zeytinyağında kavur",tip:"Sarımsak altın rengi olunca çıkar",concept:null},{action:"Domatesi ekle, tuz ve şeker koy, 10 dk pişir",tip:"Sos koyulaşınca hazır",concept:null},{action:"Makarnayı süz, sosa ekle, karıştır",tip:"Makarna suyundan 1 kase sakla",concept:null},{action:"Fesleğen ekle, servis et",tip:"Rendelenmiş parmesan varsa üstüne",concept:null}]},
+  {id:"r9",title:"Pilav",emoji:"🍚",category:"Öğle",difficulty:"Orta",time:"30 dk",xp:75,concept:"Su Oranı",ingredients:["1 su bardağı pirinç","1.5 su bardağı su","1 yemek kaşığı tereyağı","tuz"],steps:[{action:"Pirinci yıka, 10 dk suda beklet",tip:"Yıkamak nişastayı alır — pirinçler birbirine yapışmaz",concept:null},{action:"Tereyağını tencerede eritip pirinci ekle",tip:"1-2 dk kavur — pirincler şeffaflaşınca hazır",concept:"kavurma"},{action:"Sıcak suyu ekle, tuz at",tip:"1 bardak pirinç = 1.5 bardak su. Bu oran altın kural",concept:"su oranı"},{action:"Kaynatıp en kısık ateşe al, kapağı kapat",tip:"Kapağı sakın açma!",concept:null},{action:"18 dk bekle, ocağı kapat",tip:"Su tamamen çekilince hazır",concept:null},{action:"Üstüne temiz bez koy, kapağı kapat, 5 dk dinlendir",tip:"Bez fazla buharı emer — pilav tane tane olur",concept:"dinlendirme"}]},
+  {id:"r10",title:"Fırında Tavuk Göğsü",emoji:"🍗",category:"Akşam",difficulty:"Kolay",time:"35 dk",xp:85,concept:"Marinasyon",ingredients:["2 tavuk göğsü","zeytinyağı","sarımsak tozu","kekik","paprika","tuz","karabiber"],steps:[{action:"Fırını 200 dereceye ısıt",tip:"Fırın önceden ısınmalı",concept:null},{action:"Tavuğu zeytinyağı ve baharatlarla ovuştur",tip:"Her yeri kaplamasına dikkat et",concept:"marinasyon"},{action:"Fırın kabına koy, üstünü folyo ile kapat",tip:"Folyo ilk 20 dk nem tutar, tavuk kurumaz",concept:null},{action:"20 dk pişir, folyoyu çıkar",tip:"Folyo olmadan son 15 dk — üstü güzel kızarır",concept:null},{action:"15 dk daha pişir",tip:"Bıçakla ortasını deli — pembe değil beyaz görünüyorsa hazır",concept:null},{action:"Fırından çıkar, 5 dk dinlendir",tip:"Hemen kesme — dinlendirince sular içinde kalır",concept:"dinlendirme"}]},
+  {id:"r11",title:"Köfte",emoji:"🥩",category:"Akşam",difficulty:"Orta",time:"30 dk",xp:90,concept:"Et Yoğurma",ingredients:["400g kıyma","1 soğan","2 diş sarımsak","1 yumurta","galeta unu","tuz","karabiber","kimyon","kekik"],steps:[{action:"Soğanı rendele, suyunu sık",tip:"Soğan suyu köfteyi dağıtır",concept:null},{action:"Tüm malzemeleri kaseye koy",tip:"Galeta unu bağlayıcı — olmadan köfte dağılır",concept:null},{action:"En az 5 dk yoğur",tip:"Ne kadar çok yoğurursan o kadar lezzetli",concept:"et yoğurma"},{action:"Buzdolabında 30 dk dinlendir",tip:"Bu adım köftenin şeklini tutmasını sağlar",concept:"dinlendirme"},{action:"Ceviz büyüklüğünde kopar, şekillendir",tip:"Ellerini ıslatırsan yapışmaz",concept:null},{action:"Kızgın tavada her yüzü 3-4 dk pişir",tip:"Tava çok sıcak olmalı",concept:null}]},
+  {id:"r12",title:"Sebzeli Güveç",emoji:"🥘",category:"Akşam",difficulty:"Kolay",time:"45 dk",xp:80,concept:"Yavaş Pişirme",ingredients:["2 patates","2 havuç","1 kabak","1 biber","1 soğan","2 domates","zeytinyağı","tuz","kekik"],steps:[{action:"Tüm sebzeleri büyük küpler doğra",tip:"Büyük doğra — uzun pişeceği için küçük doğrarsan dağılır",concept:null},{action:"Fırını 180 dereceye ısıt",tip:"Güveç düşük ısıda uzun pişer",concept:"yavaş pişirme"},{action:"Güveç kabına soğanı, havucu, patatesi diz",tip:"Sert sebzeler alta",concept:null},{action:"Kabak ve biberi üstüne ekle",tip:"Yumuşak sebzeler üste gider",concept:null},{action:"Domatesi en üste koy, zeytinyağı ve tuz gezdir",tip:"Domates suyu alta sızar, her şeyi pişirir",concept:null},{action:"Üstünü kapakla kapat, 40 dk pişir",tip:"Aç bakmak yasak! Buhar kaçmasın",concept:null},{action:"Kekik serp, 5 dk daha pişir",tip:"Kekiği erken koymak aromasını uçurur",concept:null}]},
+  {id:"r13",title:"Kıymalı Biber Dolması",emoji:"🫑",category:"Akşam",difficulty:"Orta",time:"50 dk",xp:100,concept:"Dolma Tekniği",ingredients:["6 dolmalık biber","300g kıyma","1 su bardağı pirinç","1 soğan","salça","tuz","karabiber","nane"],steps:[{action:"Biberlerin tepesini kes, içini temizle",tip:"Tohumları çıkar ama tamamen delmemeye dikkat et",concept:null},{action:"Soğanı rendele, kıymayla karıştır",tip:"Soğan suyunu sıkmadan ekle",concept:null},{action:"Pirinci, tuz, karabiber, nane ekle, yoğur",tip:"Pirinç çiğ giriyor — pişince şişeceği için az dolduracaksın",concept:"dolma tekniği"},{action:"Biberleri 3/4'üne kadar doldur",tip:"Fazla doldurma — pirinç şişer, biber çatlar",concept:null},{action:"Biberleri tencereye dik olarak diz",tip:"Birbirine yaslanarak dursunlar",concept:null},{action:"Salçayla karışık su ekle (biberlerin yarısına kadar)",tip:"Salçalı su hem pişirir hem lezzet katar",concept:null},{action:"Kısık ateşte kapakla 35-40 dk pişir",tip:"Pirinç pişince hazır",concept:null}]},
+  {id:"r14",title:"Fırın Patates",emoji:"🥔",category:"Akşam",difficulty:"Çok Kolay",time:"40 dk",xp:45,concept:"Fırın Teknikleri",ingredients:["4 orta boy patates","zeytinyağı","tuz","karabiber","sarımsak tozu","kekik","paprika"],steps:[{action:"Fırını 200 dereceye ısıt",tip:"Yüksek ısı patatesin dışını çıtır yapar",concept:"fırın teknikleri"},{action:"Patatesleri soy, dilim ya da küp doğra",tip:"Eşit kalınlık şart",concept:null},{action:"Kağıt havluyla pat pat sil",tip:"Kuru patates daha çıtır olur",concept:null},{action:"Zeytinyağı ve baharatları ekle, karıştır",tip:"Her parça yağlansın",concept:null},{action:"Tek kat halinde tepsiye diz",tip:"Üst üste koyma — çıtır olmaz",concept:null},{action:"30-35 dk pişir, yarıda bir çevir",tip:"Altın rengi ve çıtır görününce hazır",concept:null}]},
+  {id:"r15",title:"Cacık",emoji:"🥒",category:"Ara",difficulty:"Çok Kolay",time:"10 dk",xp:30,concept:"Soğuk Sos",ingredients:["2 su bardağı yoğurt","1 salatalık","2 diş sarımsak","zeytinyağı","tuz","nane","dereotu"],steps:[{action:"Salatalığı rendele ya da küçük küp doğra",tip:"Rendele şecenin suyunu süzmesi daha kolay",concept:null},{action:"Salatalığın suyunu sık",tip:"Su cacığı sulu yapar — iyice sık",concept:null},{action:"Sarımsağı tuzla ez",tip:"Tuzla ezmek sarımsağı pasta haline getirir",concept:"soğuk sos"},{action:"Yoğurt, salatalık, sarımsak, nane, dereotu karıştır",tip:"Yoğurt tam yağlı olursa çok daha lezzetli",concept:null},{action:"Üstüne zeytinyağı gezdir, servis et",tip:"Soğuk servis et — buzdolabında 1 saat beklerse daha güzel",concept:null}]},
+  {id:"r16",title:"Haşlanmış Yumurta",emoji:"🥚",category:"Ara",difficulty:"Çok Kolay",time:"12 dk",xp:20,concept:"Haşlama Süresi",ingredients:["4 yumurta","su","tuz"],steps:[{action:"Yumurtaları buzdolabından çıkar, oda sıcaklığına gelsin",tip:"Soğuk yumurta sıcak suya girince çatlayabilir",concept:null},{action:"Tencereye su koy, kaynat",tip:"Su yumurtaları örtecek kadar çok olsun",concept:null},{action:"Kaşıkla yavaşça suya indir",tip:"Fırlatma — nazikçe bırak",concept:"haşlama süresi"},{action:"Rafadan için 6 dk, katı için 10 dk bekle",tip:"6 dk = sarı akışkan. 8 dk = yarı katı. 10 dk = tamamen katı",concept:null},{action:"Soğuk suya al, 2 dk beklet",tip:"Soğuk su pişmeyi durdurur ve kabuğun kolay soyulmasını sağlar",concept:null},{action:"Kabuğu soy, tuzla ye",tip:"Kabuğu çatlatıp su altında soyarsan daha kolay çıkar",concept:null}]},
+  {id:"r17",title:"Humus",emoji:"🫘",category:"Ara",difficulty:"Kolay",time:"10 dk",xp:40,concept:"Blenderlama",ingredients:["400g konserve nohut","3 yemek kaşığı tahin","1 limon suyu","2 diş sarımsak","zeytinyağı","tuz","kimyon","paprika"],steps:[{action:"Nohutu süz, bir miktar suyunu sakla",tip:"Nohut suyu kıvamı ayarlamak için kullanılır",concept:null},{action:"Sarımsak ve limon suyunu blendere koy, çek",tip:"Sarımsağı önce çekmek acılığını azaltır",concept:null},{action:"Tahin ekle, 1 dk çek",tip:"Tahin humusun kremsi yapısını sağlar",concept:"blenderlama"},{action:"Nohutu ekle, yüksek hızda 3-4 dk çek",tip:"Ne kadar uzun çekersen o kadar kremsi olur",concept:null},{action:"Kıvam için nohut suyu ekle, tuz ayarla",tip:"Az az ekle — çok sıvı olmasın",concept:null},{action:"Tabağa al, zeytinyağı, paprika ve kimyon serp",tip:"Güzel sunum çok önemli",concept:null}]},
+];
+
+const QUIZ = [
+  { q: "Menemen pişirirken yumurtayı ne zaman çıkarmalısın?", opts: ["Tamamen katılaşınca","Üstten pişince, altı hâlâ yumuşakken","Çiğken","Rengi değişince"], correct: 1, explain: "Menemenin kremsi dokusu için yumurtanın altı biraz sıvı kalmalı." },
+  { q: "Soğanı kavururken ne zaman biber eklersin?", opts: ["Soğan çiğken","Soğan yanmaya başlayınca","Soğan saydam görününce","Ocağı kapatınca"], correct: 2, explain: "Saydam soğan doğru kavurmanın işareti — şeker çıkmış, acılık gitmiş." },
+  { q: "Çorba için hangi mercimek tercih edilir?", opts: ["Yeşil mercimek","Kırmızı mercimek","Siyah mercimek","Fark etmez"], correct: 1, explain: "Kırmızı mercimek daha çabuk ezilir, pürüzsüz çorba için ideal." },
+];
+
+let xp = 80, streak = 3;
+let currentRecipe = 0, currentStep = 0;
+let quizIndex = 0, quizScore = 0, quizAnswered = false;
+
+function updateXP() {
+  document.getElementById('xp-val').textContent = xp;
+  const pct = Math.min(((xp - 0) / 150) * 100, 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  if (xp >= 400) { document.getElementById('level-name').textContent = '👨‍🍳 Usta'; document.getElementById('level-next').textContent = 'Zirvedesin!'; }
+  else if (xp >= 150) { document.getElementById('level-name').textContent = '🍳 Aşçı'; document.getElementById('level-next').textContent = '👨‍🍳 Usta için ' + (400-xp) + ' XP'; }
+  else { document.getElementById('level-next').textContent = '🍳 Aşçı için ' + (150-xp) + ' XP'; }
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function goHome() { showScreen('home'); setActiveTab('home'); }
+function goTab(tab) {
+  if (tab === 'quiz') { startQuiz(); }
+  else { showScreen(tab); }
+  setActiveTab(tab);
+}
+function setActiveTab(tab) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const el = document.getElementById('tab-' + tab);
+  if (el) el.classList.add('active');
+}
+
+function startRecipe(idx) {
+  currentRecipe = idx;
+  currentStep = 0;
+  renderStep();
+  showScreen('recipe');
+}
+
+function renderStep() {
+  const r = RECIPES[currentRecipe];
+  const s = r.steps[currentStep];
+  document.getElementById('recipe-screen-title').textContent = r.emoji + ' ' + r.title;
+  document.getElementById('recipe-screen-sub').textContent = 'Adım ' + (currentStep+1) + ' / ' + r.steps.length;
+  document.getElementById('recipe-xp-tag').textContent = '+' + r.xp + ' XP';
+  document.getElementById('recipe-progress').style.width = (currentStep / r.steps.length * 100) + '%';
+  document.getElementById('step-num').textContent = currentStep + 1;
+  document.getElementById('step-action').textContent = s.action;
+  document.getElementById('step-tip').textContent = s.tip;
+  document.getElementById('concept-tag-wrap').innerHTML = s.concept ? `<div class="concept-tag">📚 Kavram: ${s.concept}</div>` : '';
+  document.getElementById('ai-area').innerHTML = `<button class="ai-btn" id="ai-btn" onclick="getAiTip()">🤖 AI Şef'e sor</button>`;
+  document.getElementById('next-btn').textContent = currentStep < r.steps.length - 1 ? 'Sonraki Adım →' : '✅ Bitirdim!';
+}
+
+async function getAiTip() {
+  const r = RECIPES[currentRecipe];
+  const s = r.steps[currentStep];
+  document.getElementById('ai-area').innerHTML = `<button class="ai-btn" disabled>⏳ Düşünüyor...</button>`;
+  try {
+    const res = await fetch('/api/chef', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recipe: r.title, step: s.action, tip: s.tip })
+    });
+    const data = await res.json();
+    document.getElementById('ai-area').innerHTML = `
+      <div class="ai-tip-box">
+        <div class="ai-tip-label">🤖 AI Şef</div>
+        <div class="ai-tip-text">${data.tip}</div>
+      </div>`;
+  } catch {
+    document.getElementById('ai-area').innerHTML = `<div class="ai-tip-box"><div class="ai-tip-text">Şu an bağlanamadım!</div></div>`;
+  }
+}
+
+function nextStep() {
+  const r = RECIPES[currentRecipe];
+  if (currentStep < r.steps.length - 1) {
+    currentStep++;
+    renderStep();
+  } else {
+    document.getElementById('complete-sub').textContent = r.title + ' pişirdin!';
+    document.getElementById('complete-xp').textContent = '+' + r.xp + ' XP';
+    showScreen('complete');
+  }
+}
+
+function finishRecipe() {
+  xp += RECIPES[currentRecipe].xp;
+  updateXP();
+  goHome();
+}
+
+function startQuiz() {
+  quizIndex = 0; quizScore = 0;
+  renderQuestion();
+  showScreen('quiz');
+}
+
+function renderQuestion() {
+  const q = QUIZ[quizIndex];
+  document.getElementById('quiz-fill').style.width = (quizIndex / QUIZ.length * 100) + '%';
+  document.getElementById('quiz-count').textContent = (quizIndex+1) + '/' + QUIZ.length;
+  document.getElementById('question-text').textContent = q.q;
+  document.getElementById('explain-wrap').innerHTML = '';
+  document.getElementById('options-wrap').innerHTML = q.opts.map((o,i) =>
+    `<div class="option" id="opt-${i}" onclick="pickAnswer(${i})">${o}</div>`
+  ).join('');
+  quizAnswered = false;
+}
+
+function pickAnswer(i) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  const q = QUIZ[quizIndex];
+  if (i === q.correct) quizScore++;
+  document.querySelectorAll('.option').forEach((el, idx) => {
+    if (idx === q.correct) el.classList.add('correct');
+    else if (idx === i && i !== q.correct) el.classList.add('wrong');
+    else el.classList.add('faded');
+    el.style.cursor = 'default';
+  });
+  document.getElementById('explain-wrap').innerHTML = `<div class="explain-box">💡 ${q.explain}</div>`;
+  setTimeout(() => {
+    if (quizIndex < QUIZ.length - 1) { quizIndex++; renderQuestion(); }
+    else showFinish();
+  }, 1600);
+}
+
+function showFinish() {
+  const emojis = ['📚','🎯','🏆'];
+  document.getElementById('finish-emoji').textContent = emojis[quizScore] || '🏆';
+  document.getElementById('finish-title').textContent = quizScore + '/' + QUIZ.length + ' Doğru';
+  document.getElementById('finish-sub').textContent = quizScore === QUIZ.length ? 'Mükemmel! Usta gibi!' : 'İyi gidiyorsun, devam et!';
+  document.getElementById('finish-xp').textContent = '+' + (quizScore * 20) + ' XP';
+  showScreen('finish');
+}
+
+function finishQuiz() {
+  xp += quizScore * 20;
+  updateXP();
+  goHome();
+  setActiveTab('home');
+}
+
+updateXP();
+renderRecipeList("Tümü");
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
+}
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+
+function renderRecipeList(cat) {
+  const list = document.getElementById("recipe-list");
+  const filtered = cat === "Tümü" ? RECIPES : RECIPES.filter(r => r.category === cat);
+  list.innerHTML = filtered.map((r, i) => `
+    <div class="recipe-list-item" onclick="startRecipeById('${r.id}')">
+      <div style="font-size:28px">${r.emoji}</div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:15px;color:var(--text)">${r.title}</div>
+        <div style="color:var(--muted);font-size:12px;margin-top:2px">⏱ ${r.time} · 💪 ${r.difficulty}</div>
+      </div>
+      <span style="background:#f5c84220;color:#f5c842;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700">+${r.xp} XP</span>
+    </div>
+  `).join("");
+}
+
+function filterCat(btn, cat) {
+  document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderRecipeList(cat);
+}
+
+function startRecipeById(id) {
+  const idx = RECIPES.findIndex(r => r.id === id);
+  if (idx !== -1) startRecipe(idx);
+}
+
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    document.getElementById('install-banner').style.display = 'none';
+  });
+}
+</script>
+
+<div id="install-banner" style="display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:#1a1814;border-bottom:1px solid #2a2620;padding:12px 16px;z-index:999;align-items:center;gap:12px;">
+  <div style="font-size:24px">🍳</div>
+  <div style="flex:1">
+    <div style="font-weight:700;font-size:14px;color:#f0ebe3">Pişirio'yu Yükle</div>
+    <div style="font-size:12px;color:#8a8070">Ana ekrana ekle, uygulama gibi kullan</div>
+  </div>
+  <button onclick="installApp()" style="background:#ff6b35;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-weight:700;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">Yükle</button>
+  <button onclick="document.getElementById('install-banner').style.display='none'" style="background:transparent;border:none;color:#8a8070;font-size:20px;cursor:pointer;padding:0 4px;">×</button>
+</div>
+</body>
+</html>
